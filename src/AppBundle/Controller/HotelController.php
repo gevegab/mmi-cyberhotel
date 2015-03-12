@@ -41,6 +41,24 @@ class HotelController extends Controller {
     }
 
     /**
+     * @Route("/hotel/remove/{ville}", name="hotel.remove")
+     */
+    public function removeHotel($ville) {
+    	$hotel = $this->getHotel($ville);
+
+    	if (!$hotel) {
+			throw $this->createNotFoundException('No hotel found for city '.$ville);
+		}    	
+    	
+		$this->remove($hotel);
+		
+		return $this->render('default/message.html.twig', array(
+			'message' => "Removed hotel !".$hotel->getVille()
+		));
+		
+    }
+    
+    /**
      * @Route("/hotel/add/{ville}/{numero}", name="hotel.add.room")
      */
     public function addRoom($ville,$numero) {
@@ -67,26 +85,8 @@ class HotelController extends Controller {
      * @return \Doctrine\Common\Collections\Collection 
      */
     private function getHotels() {
-    	
-    	/*
-    	 * uncomment once ORM definitions are made
-    	 * $hotels = $this->getDoctrine()->getRepository('AppBundle:HotelExpress')->findAll(); 
-    	 */
-		
-    	$hotels = new \Doctrine\Common\Collections\ArrayCollection();
-    	
-    	$hotel = new HotelExpress("test1");
-    	new Chambre($hotel, 101);
-    	new Chambre($hotel, 102);
-    	$hotels->add($hotel);
-    	
-    	$hotel = new HotelExpress("test2");
-    	new Chambre($hotel, 301);
-    	new Chambre($hotel, 302);
-    	new Chambre($hotel, 402);
-    	$hotels->add($hotel);
-    	
-		return $hotels;
+		$em 	= $this->getDoctrine()->getManager();
+    	return $em->getRepository('AppBundle:HotelExpress')->findAll();;
     }
     
     /**
@@ -97,19 +97,8 @@ class HotelController extends Controller {
      */
     private function getHotel($ville) {
 
-    	/*
-    	 * uncomment once ORM definitions are made
-   		 * $em 	= $this->getDoctrine()->getManager();
-    	 * $hotel 	= $em->getRepository('AppBundle:HotelExpress')->findOneByVille($ville);
-		 */
-    	
-    	$found = $this->getHotels()->filter( function($hotel) use(&$ville){ return $hotel->getVille() == $ville; });
-    	
-    	if ($found->count() != 1) {
-			return null;
-		}    	
-    	
-		return $found->first();
+		$em 	= $this->getDoctrine()->getManager();
+		return $em->getRepository('AppBundle:HotelExpress')->findOneByVille($ville);
     }
     
     /**
@@ -118,15 +107,21 @@ class HotelController extends Controller {
      * @param unknown_type $entity
      */
     private function persist($entity) {
-    	
-    	/*
-    	 * uncomment once ORM definitions are made
-   		 * $em = $this->getDoctrine()->getManager();
-		 * $em-> persist($entity);
-		 * $em->flush();
-		 * 
-		 */
-   		
+		$em = $this->getDoctrine()->getManager();
+		$em-> persist($entity);
+		$em->flush();
     }
+
+   /**
+     * Removes an object from thepersistent entities
+     * 
+     * @param unknown_type $entity
+     */
+    private function remove($entity) {
+		$em = $this->getDoctrine()->getManager();
+		$em-> remove($entity);
+		$em->flush();
+    }
+    
     
 }
