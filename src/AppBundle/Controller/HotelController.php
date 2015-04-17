@@ -9,6 +9,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 use AppBundle\Entity\HotelExpress;
 use AppBundle\Entity\Chambre;
+use AppBundle\Entity\Nuitee;
+
+use DateTime;
 
 class HotelController extends Controller {
     
@@ -78,6 +81,25 @@ class HotelController extends Controller {
 		
     }
     
+        /**
+     * @Route("/hotel/add/{ville}/{numero}/{date}", name="hotel.add.room.stay")
+     */
+    public function addRoomStay($ville,$numero,$date) {
+
+    	$room = $this->getRoom($ville,$numero);
+
+    	if (!$room) {
+			throw $this->createNotFoundException('No room found for city '.$ville.' number '.$numero);
+		}    	
+    	
+		$stay = new Nuitee($room,new DateTime($date));
+		$this->persist($stay);
+        
+		return $this->render('default/message.html.twig', array(
+			'message' => "Added hotel rooom stay at :".$stay->getChambre()->getHotel()->getVille()." ".$stay->getChambre()->getNumero()." =>  ".$stay->getDate()->format('Y-m-d')
+		));
+		
+    }
     
     /**
      * Get the list of all the hotels.
@@ -86,7 +108,7 @@ class HotelController extends Controller {
      */
     private function getHotels() {
 		$em 	= $this->getDoctrine()->getManager();
-    	return $em->getRepository('AppBundle:HotelExpress')->findAll();;
+    	return $em->getRepository('AppBundle:HotelExpress')->findAll();
     }
     
     /**
@@ -99,6 +121,19 @@ class HotelController extends Controller {
 
 		$em 	= $this->getDoctrine()->getManager();
 		return $em->getRepository('AppBundle:HotelExpress')->findOneByVille($ville);
+    }
+
+    /**
+     * Get a room object givent its city and number
+     * 
+     * @param string $ville
+     * @param integer $numero
+     * @return \AppBundle\Entity\Chambre
+     */
+    private function getRoom($ville, $numero) {
+
+		$em 	= $this->getDoctrine()->getManager();
+		return $em->getRepository('AppBundle:Chambre')->findOneBy(array('hotel' => $ville, 'numero' => $numero));
     }
     
     /**

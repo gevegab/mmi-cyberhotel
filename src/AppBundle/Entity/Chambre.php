@@ -34,6 +34,15 @@ class Chambre {
 	 */
 	protected $numero;
 	
+	/**
+	 * A reference to the night stays in thei room
+	 * 
+	 * @var \Doctrine\Common\Collections\Collection
+	 * 
+	 * @ORM\OneToMany(targetEntity="Nuitee", mappedBy="chambre")
+	 */
+	protected $nuitees;
+	
     /**
      * Constructor
      * 
@@ -65,4 +74,32 @@ class Chambre {
         return $this->numero;
     }
 
+        /**
+     * Get chambres
+     *
+     * @return \Doctrine\Common\Collections\Collection 
+     */
+    public function getNuitees() {
+        return $this->nuitees;
+    }
+    
+    /**
+     * Add chambres
+     *
+     * @param \AppBundle\Entity\Nuitee $nuitee
+     * @return Chambre
+     */
+    public function addNuitee(\AppBundle\Entity\Nuitee $nuitee) {
+    	
+    	/*
+    	 * Verify this room was the one used to create the night stay object
+    	 */
+    	if ($nuitee->getChambre() !== $this) {
+    		throw new AccessDeniedHttpException("Trying to add stay to another room");
+    	}
+    	
+        $this->nuitees[] = $nuitee;
+        return $this;
+    }
+    
 }
